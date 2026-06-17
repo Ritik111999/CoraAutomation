@@ -76,6 +76,16 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <!-- Focused parallel run: Profile + Contact Us + FAQ only (18 scenarios, up to 12 Chrome browsers) -->
+        <profile>
+            <id>profile-contact-faq</id>
+            <properties>
+                <suiteXmlFile>src/test/resources/testng-profile-contact-faq-parallel.xml</suiteXmlFile>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
             <plugin>

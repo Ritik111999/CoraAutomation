@@ -137,4 +137,12 @@ public final class RandomDataUtils {
     public static String bestShowingTime() {
         return "Weekdays after 5 PM or weekends 10 AM – 4 PM";
     }
+
+    public static String contactName() {
+        return "Contact " + suffix();
+    }
+
+    public static String contactEmail() {
+        return "contact-" + suffix() + "@test.com";
+    }
 }

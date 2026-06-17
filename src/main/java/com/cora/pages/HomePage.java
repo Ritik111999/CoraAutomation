@@ -56,8 +56,15 @@ public class HomePage extends BasePage {
     private static final By SIDEBAR_HOME_LINK = By.xpath("//aside//a[@href='/home' and .//span[normalize-space()='Home']]");
     private static final By SIDEBAR_LOGOUT_BUTTON = By.xpath("//aside//button[normalize-space()='Logout']");
 
+    private final PropertySearchOverlay propertySearch;
+
     public HomePage(WebDriver driver) {
         super(driver);
+        propertySearch = new PropertySearchOverlay(driver);
+    }
+
+    public PropertySearchOverlay propertySearch() {
+        return propertySearch;
     }
 
     public void openAuthenticated() {

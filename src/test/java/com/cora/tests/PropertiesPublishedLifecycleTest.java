@@ -55,7 +55,24 @@ public class PropertiesPublishedLifecycleTest extends BaseTest {
         LocalDate openHouseDate = LocalDate.now().plusDays(1);
         form.addSingleOpenHouse(openHouseDate, "1:00 PM", "2:00 PM", "Refreshments provided");
         form.clickNextToStep(6);
-        form.fillStep6WithRandomData();
+        Assert.assertTrue(form.isAssociatedContactsSectionDisplayed(),
+                "Associated Contacts section should show before publish");
+
+        form.fillStep6Description(RandomDataUtils.listingDescription());
+        String primaryContact = RandomDataUtils.contactName();
+        form.addAssociatedContact(1, primaryContact,
+                ConfigReader.get("cora.properties.form.contact.role.1", "Buyer"),
+                RandomDataUtils.phoneNumber(), RandomDataUtils.contactEmail());
+        String secondaryContact = RandomDataUtils.contactName();
+        form.addAssociatedContact(2, secondaryContact,
+                ConfigReader.get("cora.properties.form.contact.role.2", "Listing Agent"),
+                RandomDataUtils.phoneNumber(), RandomDataUtils.contactEmail());
+        Assert.assertEquals(form.getAssociatedContactCount(), 2, "Associated contacts should be added before publish");
+        Assert.assertTrue(form.isAssociatedContactDisplayed(1, primaryContact),
+                "Primary associated contact should be visible before publish");
+        Assert.assertTrue(form.isAssociatedContactDisplayed(2, secondaryContact),
+                "Secondary associated contact should be visible before publish");
+
         form.clickPublishListing();
         getUtils().waitForSeconds(3);
 
@@ -157,5 +174,43 @@ public class PropertiesPublishedLifecycleTest extends BaseTest {
         propertiesPage.waitForPropertyRemoved(statusAddress);
         Assert.assertFalse(propertiesPage.isPropertyCardDisplayedByAddress(statusAddress),
                 "Published status test property should be deleted for: " + listingStatus);
+    }
+
+    @Test(groups = {"Negative"}, priority = 5,
+            description = "Published TC5 - Publish blocked with invalid associated contact email")
+    public void testNegative_published_publishBlockedWithInvalidAssociatedContactEmail() {
+        PropertiesPage propertiesPage = openPropertiesAuthenticated();
+        AddPropertyPage form = new AddPropertyPage(getDriver());
+
+        propertiesPage.clickAddProperty();
+        form.waitForStep(1);
+        form.fillStep1WithLocation(
+                ConfigReader.get("cora.properties.form.country"),
+                ConfigReader.get("cora.properties.form.state"),
+                ConfigReader.get("cora.properties.form.property.type"),
+                RandomDataUtils.streetAddress());
+        form.uploadPhotosAndSaveDraft(ConfigReader.getInt("cora.properties.form.photo.count", 1));
+
+        form.clickNextToStep(2);
+        form.fillStep2WithRandomData();
+        form.clickNextToStep(3);
+        form.fillStep3WithRandomData();
+        form.clickNextToStep(4);
+        form.fillStep4WithRandomData();
+        form.clickNextToStep(5);
+        form.fillStep5WithRandomData();
+        form.clickNextToStep(6);
+
+        form.fillStep6Description(RandomDataUtils.listingDescription());
+        form.addAssociatedContactWithInvalidEmail(1);
+        Assert.assertTrue(form.isAssociatedContactEmailInvalid(1),
+                "Invalid associated contact email should be flagged before publish");
+
+        form.clickPublishListing();
+
+        Assert.assertTrue(form.isOnStep(6),
+                "Publish should be blocked on step 6 when associated contact email is invalid");
+        Assert.assertTrue(form.isAssociatedContactEmailInvalid(1),
+                "Associated contact email should remain invalid after publish attempt");
     }
 }

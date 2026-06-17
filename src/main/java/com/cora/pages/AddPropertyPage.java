@@ -6,6 +6,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -108,6 +109,14 @@ public class AddPropertyPage extends BasePage {
     private static final By REVIEW_BASIC_INFO_HEADING = By.xpath("//h2[normalize-space()='Basic Info']");
     private static final By REVIEW_YOUR_LISTING_HEADING = By.xpath("//h2[normalize-space()='Review Your Listing']");
     private static final By PUBLISH_LISTING_BUTTON = By.xpath("//button[normalize-space()='Publish Listing']");
+
+    // Step 6 — Associated Contacts (optional)
+    private static final By ASSOCIATED_CONTACTS_HEADING = By.xpath("//h2[normalize-space()='Associated Contacts']");
+    private static final By ADD_ASSOCIATED_CONTACT_BUTTON = By.xpath(
+            "//h2[normalize-space()='Associated Contacts']/ancestor::div[contains(@class,'bg-white')]"
+                    + "//button[.//span[normalize-space()='+ Add Contact']]");
+    private static final By ASSOCIATED_CONTACT_CARDS = By.xpath(
+            "//h2[normalize-space()='Associated Contacts']/following::span[starts-with(normalize-space(),'Contact ')]");
 
     private static final By SAVE_DRAFT_BUTTON = By.xpath("//button[normalize-space()='Save Draft']");
     private static final By NEXT_BUTTON = By.xpath("//button[normalize-space()='Next']");
@@ -271,6 +280,14 @@ public class AddPropertyPage extends BasePage {
 
     public String getStreetAddressValue() {
         return utils.getAttribute(STREET_ADDRESS_INPUT, "value");
+    }
+
+    public String getCity() {
+        return utils.getAttribute(CITY_INPUT, "value");
+    }
+
+    public String getZipCode() {
+        return utils.getAttribute(ZIP_CODE_INPUT, "value");
     }
 
     public String getSelectedCountry() {
@@ -500,7 +517,114 @@ public class AddPropertyPage extends BasePage {
     // -------------------------------------------------------------------------
 
     public void fillStep6WithRandomData() {
-        utils.sendKeys(PROPERTY_DESCRIPTION_TEXTAREA, RandomDataUtils.listingDescription());
+        fillStep6Description(RandomDataUtils.listingDescription());
+    }
+
+    public void fillStep6Description(String description) {
+        utils.sendKeys(PROPERTY_DESCRIPTION_TEXTAREA, description);
+    }
+
+    public boolean isAssociatedContactsSectionDisplayed() {
+        return utils.isDisplayed(ASSOCIATED_CONTACTS_HEADING)
+                && utils.isDisplayed(ADD_ASSOCIATED_CONTACT_BUTTON);
+    }
+
+    public void clickAddAssociatedContact() {
+        utils.scrollToElement(ADD_ASSOCIATED_CONTACT_BUTTON);
+        utils.click(ADD_ASSOCIATED_CONTACT_BUTTON);
+    }
+
+    public int getAssociatedContactCount() {
+        return driver.findElements(ASSOCIATED_CONTACT_CARDS).size();
+    }
+
+    /**
+     * Adds one associated contact on step 6 using config defaults for the given contact index (1-based).
+     */
+    public void addAssociatedContactWithDefaults(int contactNumber) {
+        String roleKey = "cora.properties.form.contact.role." + contactNumber;
+        String role = ConfigReader.get(roleKey, "Buyer");
+        addAssociatedContact(
+                contactNumber,
+                RandomDataUtils.contactName(),
+                role,
+                RandomDataUtils.phoneNumber(),
+                RandomDataUtils.contactEmail());
+    }
+
+    public void addAssociatedContact(int contactNumber, String name, String role, String phone, String email) {
+        if (getAssociatedContactCount() < contactNumber) {
+            clickAddAssociatedContact();
+        }
+        WebElement card = waitForAssociatedContactCard(contactNumber);
+        fillAssociatedContactCard(card, name, role, phone, email);
+    }
+
+    public void addAssociatedContactWithInvalidEmail(int contactNumber) {
+        String invalidEmail = ConfigReader.get("cora.properties.form.contact.invalid.email", "not-a-valid-email");
+        addAssociatedContact(
+                contactNumber,
+                RandomDataUtils.contactName(),
+                ConfigReader.get("cora.properties.form.contact.role.1", "Buyer"),
+                RandomDataUtils.phoneNumber(),
+                invalidEmail);
+    }
+
+    public boolean isAssociatedContactEmailInvalid(int contactNumber) {
+        try {
+            WebElement card = waitForAssociatedContactCard(contactNumber);
+            WebElement emailInput = card.findElement(By.xpath(".//input[@placeholder='Email']"));
+            String ariaInvalid = emailInput.getAttribute("aria-invalid");
+            if ("true".equalsIgnoreCase(ariaInvalid)) {
+                return true;
+            }
+            Object valid = utils.executeScript("return arguments[0].validity.valid;", emailInput);
+            return Boolean.FALSE.equals(valid);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void removeAssociatedContact(int contactNumber) {
+        WebElement card = waitForAssociatedContactCard(contactNumber);
+        WebElement removeButton = card.findElement(By.xpath(".//button[normalize-space()='Remove']"));
+        scrollIntoView(removeButton);
+        removeButton.click();
+    }
+
+    public boolean isAssociatedContactDisplayed(int contactNumber, String nameFragment) {
+        try {
+            WebElement card = waitForAssociatedContactCard(contactNumber);
+            return card.getText().contains(nameFragment);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private WebElement waitForAssociatedContactCard(int contactNumber) {
+        By cardLocator = By.xpath(
+                "//span[normalize-space()='Contact " + contactNumber + "']"
+                        + "/ancestor::div[contains(@class,'rounded-2xl') and contains(@class,'border')][1]");
+        return utils.waitForVisibility(cardLocator);
+    }
+
+    private void fillAssociatedContactCard(WebElement card, String name, String role, String phone, String email) {
+        WebElement nameInput = card.findElement(By.xpath(".//input[@placeholder='Name']"));
+        WebElement roleSelect = card.findElement(By.xpath(".//select[@aria-label='Contact role']"));
+        WebElement phoneInput = card.findElement(By.xpath(".//input[@placeholder='Phone']"));
+        WebElement emailInput = card.findElement(By.xpath(".//input[@placeholder='Email']"));
+
+        scrollIntoView(nameInput);
+        nameInput.clear();
+        nameInput.sendKeys(name);
+
+        new Select(roleSelect).selectByVisibleText(role);
+
+        phoneInput.clear();
+        phoneInput.sendKeys(phone);
+
+        emailInput.clear();
+        emailInput.sendKeys(email);
     }
 
     public void clearPropertyDescription() {

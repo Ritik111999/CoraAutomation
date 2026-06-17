@@ -14,7 +14,6 @@ public class PropertiesPage extends BasePage {
     private static final By PAGE_HEADING = By.xpath("//main//h1[contains(normalize-space(),'Properties')]");
     private static final By ADD_PROPERTY_BUTTON = By.xpath("//main//button[normalize-space()='Add Property']");
     private static final By DRAFT_PROPERTIES_BUTTON = By.xpath("//button[normalize-space()='Draft Properties']");
-    private static final By PROPERTY_SEARCH_BUTTON = By.xpath("//button[@aria-label='Open property search']");
     private static final By PROPERTY_GRID = By.xpath("//main//div[contains(@class,'grid') and contains(@class,'md:grid-cols-2')]");
     private static final By PROPERTY_CARD = By.xpath(
             "//main//div[contains(@class,'rounded-3xl') and contains(@class,'cursor-pointer')]");
@@ -89,7 +88,11 @@ public class PropertiesPage extends BasePage {
     }
 
     public void clickPropertySearch() {
-        utils.click(PROPERTY_SEARCH_BUTTON);
+        propertySearch().open();
+    }
+
+    private PropertySearchOverlay propertySearch() {
+        return new PropertySearchOverlay(driver);
     }
 
     public boolean isPropertyCardDisplayedByAddress(String addressFragment) {

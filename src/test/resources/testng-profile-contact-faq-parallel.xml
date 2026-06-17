@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<!--
+  FOCUSED PARALLEL SUITE — Profile, Contact Us, FAQ only
+  - Browser: Google Chrome (one isolated instance per @Test method)
+  - parallel="methods"  -> each scenario runs in its own thread / Chrome window
+  - thread-count="12"   -> up to 12 concurrent browsers (18 total scenarios)
+
+  Profile = 5 (2 positive + 3 negative) — authenticated mutations serialized via ProfileAccountLock
+  Contact Us = 6 (3 positive + 3 negative) — fully parallel
+  FAQ = 7 (5 positive + 2 negative) — fully parallel
+
+  Run: mvn test -Pprofile-contact-faq
+    or: mvn test -DsuiteXmlFile=src/test/resources/testng-profile-contact-faq-parallel.xml
+-->
+<suite name="Cora Profile Contact FAQ Parallel"
+       parallel="methods"
+       thread-count="12"
+       data-provider-thread-count="4"
+       verbose="1">
+
+    <listeners>
+        <listener class-name="com.cora.listeners.TestListener"/>
+    </listeners>
+
+    <test name="Profile + Contact Us + FAQ — Parallel Chrome">
+        <groups>
+            <run>
+                <include name="Positive"/>
+                <include name="Negative"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="com.cora.tests.ProfileTest"/>
+            <class name="com.cora.tests.ContactUsTest"/>
+            <class name="com.cora.tests.FaqTest"/>
+        </classes>
+    </test>
+
+</suite>

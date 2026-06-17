@@ -18,6 +18,9 @@ public final class TestScenarioCatalog {
         registerDraftScenarios();
         registerPublishedScenarios();
         registerPropertiesNegativeScenarios();
+        registerProfileScenarios();
+        registerContactUsScenarios();
+        registerFaqScenarios();
     }
 
     private TestScenarioCatalog() {
@@ -180,6 +183,41 @@ public final class TestScenarioCatalog {
                 "No active session",
                 steps("Navigate to /appointments without login", "Verify redirect"),
                 "User is redirected to login page");
+
+        register("HomePropertySearchTest#testPositive_homePropertySearch_findPublishedByAddress",
+                moduleCode, moduleName, "HOME-TC-08",
+                "Header search finds published property by address", "Positive",
+                "User published a property listing",
+                steps("Publish property", "Open Home header search", "Search by street address"),
+                "Published property appears in search results");
+
+        register("HomePropertySearchTest#testPositive_homePropertySearch_findPublishedByCity",
+                moduleCode, moduleName, "HOME-TC-09",
+                "Header search finds published property by city", "Positive",
+                "User published a property listing",
+                steps("Publish property", "Open Home header search", "Search by city"),
+                "Published property appears in city search results");
+
+        register("HomePropertySearchTest#testPositive_homePropertySearch_findPublishedByZip",
+                moduleCode, moduleName, "HOME-TC-10",
+                "Header search finds published property by ZIP", "Positive",
+                "User published a property listing",
+                steps("Publish property", "Open Home header search", "Search by ZIP code"),
+                "Published property appears in ZIP search results");
+
+        register("HomePropertySearchTest#testNegative_homePropertySearch_noMatchShowsNoResults",
+                moduleCode, moduleName, "HOME-TC-11",
+                "Header search with no match shows empty results", "Negative",
+                "User is on Home",
+                steps("Open search", "Enter unmatched term"),
+                "No property results are shown");
+
+        register("HomePropertySearchTest#testNegative_homePropertySearch_clearSearchResetsInput",
+                moduleCode, moduleName, "HOME-TC-12",
+                "Clear search resets the query field", "Negative",
+                "User is on Home with search open",
+                steps("Enter search term", "Click clear (X)"),
+                "Search input is emptied");
     }
 
     // -------------------------------------------------------------------------
@@ -339,7 +377,9 @@ public final class TestScenarioCatalog {
                 "Create and publish property from wizard", "Positive",
                 "User is logged in on Properties",
                 steps(
-                        "Complete wizard and publish listing",
+                        "Complete wizard through step 6",
+                        "Add associated contacts on step 6",
+                        "Publish listing",
                         "Verify property on Properties list"
                 ),
                 "Published property card appears on Properties list");
@@ -393,6 +433,17 @@ public final class TestScenarioCatalog {
                 "User is logged in",
                 steps("Publish with COMING-SOON status", "Verify badge", "Delete property"),
                 "COMING-SOON badge displayed on property card");
+
+        register("PropertiesPublishedLifecycleTest#testNegative_published_publishBlockedWithInvalidAssociatedContactEmail",
+                moduleCode, moduleName, "PUB-TC-08",
+                "Publish blocked with invalid associated contact email", "Negative",
+                "User on step 6 with description and invalid contact email",
+                steps(
+                        "Complete wizard through step 6",
+                        "Add associated contact with invalid email",
+                        "Click Publish Listing"
+                ),
+                "User remains on step 6; contact email stays invalid");
     }
 
     // -------------------------------------------------------------------------
@@ -437,5 +488,192 @@ public final class TestScenarioCatalog {
                 "User on wizard step 5",
                 steps("Attempt to select UNKNOWN status"),
                 "Unsupported status cannot be selected; test handles safely");
+    }
+
+    // -------------------------------------------------------------------------
+    // 08 - Profile
+    // -------------------------------------------------------------------------
+
+    private static void registerProfileScenarios() {
+        String moduleCode = "08";
+        String moduleName = "08 - Profile";
+
+        register("ProfileTest#testPositive_profile_uploadProfileImageFromMainPage",
+                moduleCode, moduleName, "PROF-TC-01",
+                "Upload profile image from My Profile page", "Positive",
+                "User is logged in on My Profile",
+                steps(
+                        "Open My Profile from sidebar",
+                        "Upload image via profile photo control",
+                        "Verify avatar remains visible"
+                ),
+                "Profile image upload succeeds on main profile card");
+
+        register("ProfileTest#testPositive_profile_editPersonalInfoAndPhoto",
+                moduleCode, moduleName, "PROF-TC-02",
+                "Edit personal info and photo via Basic Info", "Positive",
+                "User is on My Profile",
+                steps(
+                        "Tap Account → Basic Info",
+                        "Upload profile photo on Edit Profile",
+                        "Update first name, phone, and company",
+                        "Save Changes and verify profile header",
+                        "Restore original personal info"
+                ),
+                "Personal information updates persist; Account Security is not tested");
+
+        register("ProfileTest#testNegative_profile_emptyPhoneBlocksSave",
+                moduleCode, moduleName, "PROF-TC-03",
+                "Empty phone prevents save on Edit Profile", "Negative",
+                "User is on Edit Profile via Basic Info",
+                steps(
+                        "Clear Phone Number",
+                        "Click Save Changes"
+                ),
+                "Save is blocked; user remains on Edit Profile");
+
+        register("ProfileTest#testNegative_profile_invalidPhoneBlocksSave",
+                moduleCode, moduleName, "PROF-TC-04",
+                "Invalid phone prevents save on Edit Profile", "Negative",
+                "User is on Edit Profile via Basic Info",
+                steps(
+                        "Enter invalid phone number",
+                        "Click Save Changes"
+                ),
+                "Save is blocked; invalid phone is retained or highlighted");
+
+        register("ProfileTest#testNegative_profile_unauthenticatedRedirect#PROFILE_WITHOUT_LOGIN",
+                moduleCode, moduleName, "PROF-TC-05",
+                "Profile blocked without login", "Negative",
+                "No active session",
+                steps("Navigate to /profile without login", "Verify redirect"),
+                "User is redirected to login page");
+    }
+
+    // -------------------------------------------------------------------------
+    // 09 - Contact Us
+    // -------------------------------------------------------------------------
+
+    private static void registerContactUsScenarios() {
+        String moduleCode = "09";
+        String moduleName = "09 - Contact Us";
+
+        register("ContactUsTest#testPositive_contactUs_pageLoadsWithForm",
+                moduleCode, moduleName, "CONTACT-TC-01",
+                "Contact Us page loads with form fields", "Positive",
+                "User is logged in",
+                steps(
+                        "Open Contact Us from sidebar",
+                        "Verify hero, response time, and form",
+                        "Verify Submit is disabled initially"
+                ),
+                "Contact Us page loads with empty form and disabled Submit");
+
+        register("ContactUsTest#testPositive_contactUs_submitValidMessage",
+                moduleCode, moduleName, "CONTACT-TC-02",
+                "Submit valid contact message", "Positive",
+                "User is on Contact Us page",
+                steps(
+                        "Fill name, email, subject, and message",
+                        "Click Submit",
+                        "Verify success toast or cleared form"
+                ),
+                "Valid contact message is submitted successfully");
+
+        register("ContactUsTest#testPositive_contactUs_accessibleWithoutLogin",
+                moduleCode, moduleName, "CONTACT-TC-03",
+                "Contact Us loads without authentication", "Positive",
+                "No active session",
+                steps("Navigate to /contact without login", "Verify form loads"),
+                "Guest users can access Contact Us form");
+
+        register("ContactUsTest#testNegative_contactUs_emptyFormSubmitBlocked",
+                moduleCode, moduleName, "CONTACT-TC-04",
+                "Empty form submit blocked", "Negative",
+                "User is on Contact Us page",
+                steps("Click Submit without entering data"),
+                "No success state; user remains on Contact Us");
+
+        register("ContactUsTest#testNegative_contactUs_invalidEmailBlocksSubmit",
+                moduleCode, moduleName, "CONTACT-TC-05",
+                "Invalid email blocks submission", "Negative",
+                "User is on Contact Us page",
+                steps(
+                        "Fill form with invalid email",
+                        "Attempt Submit"
+                ),
+                "Invalid email is rejected; no success state");
+
+        register("ContactUsTest#testNegative_contactUs_missingMessageSubmitBlocked",
+                moduleCode, moduleName, "CONTACT-TC-06",
+                "Missing message submit blocked", "Negative",
+                "User is on Contact Us page",
+                steps(
+                        "Fill name, email, and subject only",
+                        "Click Submit without message"
+                ),
+                "No success state without a message");
+    }
+
+    // -------------------------------------------------------------------------
+    // 10 - FAQ
+    // -------------------------------------------------------------------------
+
+    private static void registerFaqScenarios() {
+        String moduleCode = "10";
+        String moduleName = "10 - FAQ";
+
+        register("FaqTest#testPositive_faq_pageLoadsWithSections",
+                moduleCode, moduleName, "FAQ-TC-01",
+                "FAQ page loads with search and sections", "Positive",
+                "User is logged in",
+                steps(
+                        "Open FAQ from sidebar",
+                        "Verify categories and questions",
+                        "Verify Still Need Help section"
+                ),
+                "FAQ page loads with searchable accordion content");
+
+        register("FaqTest#testPositive_faq_searchFiltersQuestions",
+                moduleCode, moduleName, "FAQ-TC-02",
+                "Search filters matching FAQ questions", "Positive",
+                "User is on FAQ page",
+                steps("Enter search keyword", "Verify filtered question list"),
+                "Only matching FAQ items remain visible");
+
+        register("FaqTest#testPositive_faq_expandQuestionShowsAnswer",
+                moduleCode, moduleName, "FAQ-TC-03",
+                "Expand question shows answer", "Positive",
+                "User is on FAQ page",
+                steps("Click FAQ question", "Verify answer content"),
+                "Accordion expands and answer text is displayed");
+
+        register("FaqTest#testPositive_faq_stillNeedHelpShowsContactSupport",
+                moduleCode, moduleName, "FAQ-TC-04",
+                "Still Need Help shows Contact Support button", "Positive",
+                "User is on FAQ page",
+                steps("Scroll to Still Need Help section", "Verify Contact Support button"),
+                "Support CTA is visible on FAQ page");
+
+        register("FaqTest#testPositive_faq_accessibleWithoutLogin",
+                moduleCode, moduleName, "FAQ-TC-05",
+                "FAQ loads without authentication", "Positive",
+                "No active session",
+                steps("Navigate to /faq without login", "Verify FAQ content"),
+                "Guest users can access FAQ page");
+
+        register("FaqTest#testNegative_faq_searchWithNoMatches",
+                moduleCode, moduleName, "FAQ-TC-06",
+                "Search with no match shows empty results", "Negative",
+                "User is on FAQ page",
+                steps("Enter search term with no matches"),
+                "No FAQ items are shown for unmatched search");
+
+        register("FaqTest#testNegative_faq_searchWithSpecialCharactersShowsNoResults",
+                moduleCode, moduleName, "FAQ-TC-07",
+                "Special-character search shows no results", "Negative",
+                "User is on FAQ page",
+                steps("Enter special-character search term"),
+                "No FAQ items match; user remains on FAQ");
     }
 }

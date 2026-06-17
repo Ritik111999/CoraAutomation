@@ -7,9 +7,11 @@
   - thread-count="10"            -> caps max concurrent Chrome instances
   - data-provider-thread-count="4" -> caps parallel DataProvider invocations
 
-  Login = 5 (1 positive + 4 negative) | Home = 7 (3 positive + 4 negative)
+  Login = 5 (1 positive + 4 negative) | Home = 12 (6 positive + 6 negative) | Home Property Search = 5 (3 positive + 2 negative, sequential)
   Properties = 6 (3 positive + 3 negative)
-  Draft Lifecycle = 8 (3 chained + 5 country variants) | Published Lifecycle = 3 chained
+  Profile = 5 (2 positive + 3 negative) | Contact Us = 6 (3 positive + 3 negative) | FAQ = 7 (5 positive + 2 negative)
+  Focused parallel suite for these 3 modules: testng-profile-contact-faq-parallel.xml (mvn test -Pprofile-contact-faq)
+  Draft Lifecycle = 8 (3 chained + 5 country variants) | Published Lifecycle = 4 chained + 4 status + 1 negative
 -->
 <suite name="Cora Suite"
        parallel="methods"
@@ -26,6 +28,15 @@
             <class name="com.cora.tests.LoginTest"/>
             <class name="com.cora.tests.HomeTest"/>
             <class name="com.cora.tests.PropertiesTest"/>
+            <class name="com.cora.tests.ProfileTest"/>
+            <class name="com.cora.tests.ContactUsTest"/>
+            <class name="com.cora.tests.FaqTest"/>
+        </classes>
+    </test>
+
+    <test name="Home Property Search" parallel="false" preserve-order="true">
+        <classes>
+            <class name="com.cora.tests.HomePropertySearchTest"/>
         </classes>
     </test>
 
