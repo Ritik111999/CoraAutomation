@@ -41,6 +41,12 @@ final class QaReportHtmlSupport {
         };
     }
 
+    static String documentStart(String title) {
+        return "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"/>"
+                + "<title>" + escape(title) + "</title>"
+                + "<style>" + sharedStyles() + "</style></head><body>";
+    }
+
     static String sharedStyles() {
         return """
                 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;

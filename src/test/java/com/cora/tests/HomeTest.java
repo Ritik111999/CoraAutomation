@@ -46,18 +46,26 @@ public class HomeTest extends BaseTest {
 
         String item1 = ConfigReader.get("cora.followups.item.name.1");
         String item2 = ConfigReader.get("cora.followups.item.name.2");
+        boolean interacted = false;
         if (followUpsPage.isFollowUpItemDisplayed(item1)) {
             followUpsPage.clickFollowUpItemByName(item1);
             followUpsPage.clickViewDetails();
-            followUpsPage.clickFollowUpItemByName(item1);
+            interacted = true;
         }
         if (followUpsPage.isFollowUpItemDisplayed(item2)) {
             followUpsPage.clickFollowUpItemByName(item2);
             followUpsPage.clickViewDetails();
-            followUpsPage.clickFollowUpItemByName(item2);
+            interacted = true;
         }
-        if (!followUpsPage.isFollowUpItemDisplayed(item1) && !followUpsPage.isFollowUpItemDisplayed(item2)) {
-            Assert.assertTrue(followUpsPage.isEmptyStateDisplayed(), "Empty state should show when no follow-ups");
+        if (!interacted) {
+            if (followUpsPage.hasFollowUpItems()) {
+                String countLabel = followUpsPage.getFollowUpCountLabel();
+                Assert.assertTrue(countLabel.toLowerCase().contains("follow-up"),
+                        "Follow-up count label should be shown when list has items");
+            } else {
+                Assert.assertTrue(followUpsPage.isEmptyStateDisplayed(),
+                        "Empty state should show when no follow-ups exist on this tab");
+            }
         }
 
         followUpsPage.clickBack();

@@ -12,6 +12,7 @@ import com.cora.reporting.ExecutionMetricsCollector;
 import com.cora.reporting.ExtentTestManager;
 import com.cora.reporting.ModuleWiseReportGenerator;
 import com.cora.reporting.ReportArtifactPaths;
+import com.cora.reporting.ReportCleanup;
 import com.cora.reporting.ScenarioCategoryMapper;
 import com.cora.reporting.ScenarioReportGenerator;
 import com.cora.reporting.TestScenarioCollector;
@@ -29,7 +30,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Suite + test listener that drives HTML dashboard, PDF report, and optional email distribution.
+ * Suite + test listener that drives PDF-only QA reports (Carderosity format).
  */
 public class TestListener implements ITestListener, ISuiteListener {
 
@@ -74,6 +75,9 @@ public class TestListener implements ITestListener, ISuiteListener {
         }
 
         ExtentTestManager.flushReport();
+        if (paths != null) {
+            ReportCleanup.cleanupAfterRun(paths);
+        }
     }
 
     @Override

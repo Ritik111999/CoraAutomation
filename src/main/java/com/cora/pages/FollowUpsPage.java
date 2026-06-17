@@ -36,6 +36,9 @@ public class FollowUpsPage extends BasePage {
             "//main//div[contains(@class,'space-y-3')]//button[contains(normalize-space(),'%s')]"
                     + "|//main//div[contains(@class,'space-y-3')]//div[contains(@class,'cursor-pointer') and contains(normalize-space(),'%s')]";
     private static final By VIEW_DETAILS_BUTTON = By.xpath("//main//button[contains(normalize-space(),'View details')]");
+    private static final By ANY_FOLLOW_UP_ROW = By.xpath(
+            "//main//div[contains(@class,'space-y-3')]//*[self::button or contains(@class,'cursor-pointer')]"
+                    + "[contains(@class,'rounded') or contains(@class,'border')]");
 
     public FollowUpsPage(WebDriver driver) {
         super(driver);
@@ -91,6 +94,10 @@ public class FollowUpsPage extends BasePage {
 
     public boolean isFollowUpItemDisplayed(String itemName) {
         return utils.isDisplayed(By.xpath(String.format(FOLLOW_UP_ITEM_XPATH, itemName, itemName)));
+    }
+
+    public boolean hasFollowUpItems() {
+        return utils.isDisplayed(ANY_FOLLOW_UP_ROW);
     }
 
     public void clickFollowUpItemByName(String itemName) {

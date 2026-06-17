@@ -2,17 +2,13 @@ package com.cora.reporting;
 
 import com.cora.config.ConfigReader;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Generates the Carderosity-style Module Wise QA Report (HTML + print-friendly).
+ * Generates the Carderosity-style Module Wise QA Report as PDF.
  */
 public final class ModuleWiseReportGenerator {
 
@@ -28,36 +24,25 @@ public final class ModuleWiseReportGenerator {
         int skipped = (int) results.stream().filter(TestScenarioResult::isSkipped).count();
         int total = results.size();
 
-        String extentFileName = Path.of(paths.getHtmlReportPath()).getFileName().toString();
-
         StringBuilder html = new StringBuilder();
-        html.append("<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\">");
-        html.append("<title>").append(QaReportHtmlSupport.escape(title)).append("</title>");
-        html.append("<style>").append(QaReportHtmlSupport.sharedStyles()).append("</style></head><body>");
+        html.append(QaReportHtmlSupport.documentStart(title));
 
         html.append("<h1>").append(QaReportHtmlSupport.escape(title)).append("</h1>");
         html.append("<div class=\"meta\">Generated: ")
                 .append(QaReportHtmlSupport.generatedTimestamp(generatedAt)).append("</div>");
         html.append("<div class=\"summary\">Total Scenarios: ").append(total)
-                .append(" &nbsp;|&nbsp; Passed: ").append(passed)
-                .append(" &nbsp;|&nbsp; Failed: ").append(failed);
+                .append(" | Passed: ").append(passed)
+                .append(" | Failed: ").append(failed);
         if (skipped > 0) {
-            html.append(" &nbsp;|&nbsp; Skipped: ").append(skipped);
+            html.append(" | Skipped: ").append(skipped);
         }
         html.append("</div>");
 
         appendModuleSummary(html, results);
         appendScenarioDetails(html, results);
-
-        html.append("<div class=\"footer-links\">");
-        html.append("<a href=\"ScenarioReport.html\">Full Scenario Report (steps &amp; expected)</a>");
-        html.append("<a href=\"").append(QaReportHtmlSupport.escape(extentFileName))
-                .append("\">Extent Report</a>");
-        html.append("</div>");
-
         html.append("</body></html>");
 
-        write(paths.getModuleWiseReportPath(), html.toString());
+        HtmlToPdfConverter.writePdf(html.toString(), paths.getModuleWisePdfPath());
     }
 
     private static void appendModuleSummary(StringBuilder html, List<TestScenarioResult> results) {
@@ -114,14 +99,6 @@ public final class ModuleWiseReportGenerator {
         }
         if (currentModule != null) {
             html.append("</tbody></table>");
-        }
-    }
-
-    private static void write(String path, String content) {
-        try {
-            Files.writeString(Path.of(path), content, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to write Module Wise QA report: " + path, e);
         }
     }
 

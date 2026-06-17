@@ -1,58 +1,54 @@
 package com.cora.reporting;
 
+import com.cora.config.ConfigReader;
+
 import java.io.File;
 import java.nio.file.Path;
 
 /**
- * Holds resolved report artifact paths for the current execution run.
+ * Holds resolved PDF report artifact paths for the current execution run (Carderosity naming).
  */
 public final class ReportArtifactPaths {
 
     private final String reportDirectory;
-    private final String htmlReportPath;
-    private final String pdfReportPath;
-    private final String latestHtmlAliasPath;
-    private final String moduleWiseReportPath;
-    private final String scenarioReportPath;
+    private final String extentHtmlTempPath;
+    private final String extentPdfPath;
+    private final String moduleWisePdfPath;
+    private final String scenarioPdfPath;
 
-    public ReportArtifactPaths(String reportDirectory, String htmlReportPath, String pdfReportPath) {
+    public ReportArtifactPaths(String reportDirectory, String extentHtmlTempPath, String extentPdfPath) {
         this.reportDirectory = reportDirectory;
-        this.htmlReportPath = htmlReportPath;
-        this.pdfReportPath = pdfReportPath;
-        this.latestHtmlAliasPath = reportDirectory + File.separator + "ExtentReport_LATEST.html";
-        this.moduleWiseReportPath = reportDirectory + File.separator + "ModuleWiseReport.html";
-        this.scenarioReportPath = reportDirectory + File.separator + "ScenarioReport.html";
+        this.extentHtmlTempPath = extentHtmlTempPath;
+        this.extentPdfPath = extentPdfPath;
+
+        String productName = ConfigReader.get("report.product.name", "Cora PWA");
+        this.moduleWisePdfPath = reportDirectory + File.separator + productName + " — Module Wise QA Report.pdf";
+        this.scenarioPdfPath = reportDirectory + File.separator + productName + " — Test Scenario Report.pdf";
     }
 
     public String getReportDirectory() {
         return reportDirectory;
     }
 
-    public String getHtmlReportPath() {
-        return htmlReportPath;
+    /** Temporary Extent Spark HTML used only during the run; deleted after PDF is written. */
+    public String getExtentHtmlTempPath() {
+        return extentHtmlTempPath;
     }
 
-    public String getPdfReportPath() {
-        return pdfReportPath;
+    /** Carderosity-style extended report (Extent + screenshots). */
+    public String getExtentPdfPath() {
+        return extentPdfPath;
     }
 
-    public String getLatestHtmlAliasPath() {
-        return latestHtmlAliasPath;
+    public String getModuleWisePdfPath() {
+        return moduleWisePdfPath;
     }
 
-    public String getModuleWiseReportPath() {
-        return moduleWiseReportPath;
+    public String getScenarioPdfPath() {
+        return scenarioPdfPath;
     }
 
-    public String getScenarioReportPath() {
-        return scenarioReportPath;
-    }
-
-    public File htmlFile() {
-        return Path.of(htmlReportPath).toFile();
-    }
-
-    public File pdfFile() {
-        return Path.of(pdfReportPath).toFile();
+    public File extentPdfFile() {
+        return Path.of(extentPdfPath).toFile();
     }
 }

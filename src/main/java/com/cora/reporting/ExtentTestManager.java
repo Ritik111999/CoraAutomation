@@ -18,7 +18,7 @@ import java.util.Map;
 
 /**
  * Central Extent Reports manager for parallel TestNG execution.
- * Produces interactive Spark HTML dashboard + downloadable PDF report.
+ * Produces the Carderosity-style Extend Module Wise QA Report as PDF.
  */
 public final class ExtentTestManager {
 
@@ -43,11 +43,12 @@ public final class ExtentTestManager {
         String reportDir = System.getProperty("user.dir") + File.separator + "test-output" + File.separator + "reports";
         new File(reportDir).mkdirs();
 
-        String htmlReportPath = reportDir + File.separator + "ExtentReport_" + timestamp + ".html";
-        String pdfReportPath = reportDir + File.separator + "ExtentReport_" + timestamp + ".pdf";
-        artifactPaths = new ReportArtifactPaths(reportDir, htmlReportPath, pdfReportPath);
+        String productName = ConfigReader.get("report.product.name", "Cora PWA");
+        String htmlTempPath = reportDir + File.separator + ".extent-temp-" + timestamp + ".html";
+        String pdfReportPath = reportDir + File.separator + productName + " — Extend Module Wise QA Report.pdf";
+        artifactPaths = new ReportArtifactPaths(reportDir, htmlTempPath, pdfReportPath);
 
-        sparkReporter = new ExtentSparkReporter(htmlReportPath);
+        sparkReporter = new ExtentSparkReporter(htmlTempPath);
         sparkReporter.config().setDocumentTitle(ConfigReader.get("report.title", "Cora Test Execution Report"));
         sparkReporter.config().setReportName(ConfigReader.get("report.name", "Cora Automation Report"));
         sparkReporter.config().setTheme(Theme.STANDARD);
@@ -86,20 +87,6 @@ public final class ExtentTestManager {
     public static synchronized void flushReport() {
         if (extentReports != null) {
             extentReports.flush();
-            copyLatestHtmlAlias();
-        }
-    }
-
-    private static void copyLatestHtmlAlias() {
-        if (artifactPaths == null) {
-            return;
-        }
-        try {
-            Path source = Path.of(artifactPaths.getHtmlReportPath());
-            Path target = Path.of(artifactPaths.getLatestHtmlAliasPath());
-            Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-        } catch (Exception ignored) {
-            // Alias copy is best-effort
         }
     }
 
