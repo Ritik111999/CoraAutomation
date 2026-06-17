@@ -6,7 +6,9 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
@@ -41,6 +43,10 @@ public class WebElementUtils {
 
     public boolean waitForInvisibility(By locator) {
         return wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
+    }
+
+    public void waitForUrlContains(String partialUrl) {
+        wait.until(ExpectedConditions.urlContains(partialUrl));
     }
 
     public List<WebElement> waitForAllVisible(By locator) {
@@ -78,6 +84,40 @@ public class WebElementUtils {
         }
     }
 
+    public boolean isEnabled(By locator) {
+        try {
+            return waitForVisibility(locator).isEnabled();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void selectByVisibleText(By locator, String visibleText) {
+        WebElement element = waitForVisibility(locator);
+        new Select(element).selectByVisibleText(visibleText);
+    }
+
+    public void selectByValue(By locator, String value) {
+        WebElement element = waitForVisibility(locator);
+        new Select(element).selectByValue(value);
+    }
+
+    public void selectByIndex(By locator, int index) {
+        WebElement element = waitForVisibility(locator);
+        new Select(element).selectByIndex(index);
+    }
+
+    public String getSelectedOptionText(By locator) {
+        WebElement element = waitForVisibility(locator);
+        return new Select(element).getFirstSelectedOption().getText().trim();
+    }
+
+    public void clickIfDisplayed(By locator) {
+        if (isDisplayed(locator)) {
+            click(locator);
+        }
+    }
+
     public void scrollToElement(By locator) {
         WebElement element = waitForVisibility(locator);
         jsExecutor.executeScript("arguments[0].scrollIntoView({block: 'center'});", element);
@@ -96,8 +136,42 @@ public class WebElementUtils {
         actions.moveToElement(element).perform();
     }
 
-    public void executeScript(String script, Object... args) {
-        jsExecutor.executeScript(script, args);
+    public Object executeScript(String script, Object... args) {
+        return jsExecutor.executeScript(script, args);
+    }
+
+    public WebElement waitForPresence(By locator) {
+        return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+    }
+
+    public void waitForSeconds(int seconds) {
+        try {
+            Thread.sleep(seconds * 1000L);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+    }
+
+    /** Accepts a native browser confirm/alert if one appears (e.g. Delete Draft). */
+    public void acceptAlertIfPresent() {
+        try {
+            WebDriverWait alertWait = new WebDriverWait(driver, Duration.ofSeconds(3));
+            Alert alert = alertWait.until(ExpectedConditions.alertIsPresent());
+            alert.accept();
+        } catch (Exception ignored) {
+            // No native dialog — in-app modal may handle confirmation instead
+        }
+    }
+
+    public void clickIfDisplayedWithin(By locator, int timeoutSeconds) {
+        try {
+            WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
+            WebElement element = shortWait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+            element.click();
+        } catch (Exception ignored) {
+            // Optional confirmation control not shown
+        }
     }
 
     public WebDriver getDriver() {

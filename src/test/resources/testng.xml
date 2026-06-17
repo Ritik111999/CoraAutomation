@@ -1,26 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
-<suite name="Cora Automation Suite" parallel="methods" thread-count="3" verbose="1">
+<!--
+  HYPER-PARALLEL CHROME EXECUTION
+  - Browser: Google Chrome ONLY
+  - parallel="methods"           -> each @Test method runs in its own thread
+  - thread-count="10"            -> caps max concurrent Chrome instances
+  - data-provider-thread-count="4" -> caps parallel DataProvider invocations
+
+  Login = 5 (1 positive + 4 negative) | Home = 7 (3 positive + 4 negative)
+  Properties = 6 (3 positive + 3 negative)
+  Draft Lifecycle = 8 (3 chained + 5 country variants) | Published Lifecycle = 3 chained
+-->
+<suite name="Cora Suite"
+       parallel="methods"
+       thread-count="10"
+       data-provider-thread-count="4"
+       verbose="1">
 
     <listeners>
         <listener class-name="com.cora.listeners.TestListener"/>
     </listeners>
 
-  <!--
-    Add test classes here as they are created.
-    Example:
-    <test name="Login Tests">
-        <parameter name="browser" value="chrome"/>
+    <test name="Cora Tests - Chrome Parallel">
         <classes>
             <class name="com.cora.tests.LoginTest"/>
+            <class name="com.cora.tests.HomeTest"/>
+            <class name="com.cora.tests.PropertiesTest"/>
         </classes>
     </test>
-  -->
 
-    <test name="Placeholder">
-        <parameter name="browser" value="chrome"/>
+    <test name="Properties Draft Lifecycle" parallel="false" preserve-order="true">
         <classes>
-            <class name="com.cora.tests.FrameworkSmokeTest"/>
+            <class name="com.cora.tests.PropertiesDraftLifecycleTest"/>
+        </classes>
+    </test>
+
+    <test name="Properties Published Lifecycle" parallel="false" preserve-order="true">
+        <classes>
+            <class name="com.cora.tests.PropertiesPublishedLifecycleTest"/>
+        </classes>
+    </test>
+
+    <test name="Properties Negative Countries + Status" parallel="false" preserve-order="true">
+        <classes>
+            <class name="com.cora.tests.PropertiesNegativeCountriesAndStatusTest"/>
         </classes>
     </test>
 

@@ -1,40 +1,32 @@
 package com.cora.base;
 
 import com.cora.config.ConfigReader;
+import com.cora.utils.BrowserFactory;
 import com.cora.utils.WebElementUtils;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.edge.EdgeDriver;
-import org.openqa.selenium.edge.EdgeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.firefox.FirefoxOptions;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
 
 import java.time.Duration;
 
 /**
- * Base test class providing thread-safe WebDriver lifecycle management.
- * Uses ThreadLocal to support parallel TestNG execution.
+ * Base test class — thread-safe Chrome lifecycle for hyper-parallel TestNG execution.
+ * Each @Test / DataProvider row gets its own Chrome instance via ThreadLocal.
  */
 public abstract class BaseTest {
 
     protected static final ThreadLocal<WebDriver> driverThreadLocal = new ThreadLocal<>();
     protected static final ThreadLocal<WebElementUtils> utilsThreadLocal = new ThreadLocal<>();
+    protected static final ThreadLocal<String> threadLabelLocal = new ThreadLocal<>();
 
     @BeforeMethod(alwaysRun = true)
-    @Parameters({"browser"})
-    public void setUp(@Optional String browserParam) {
+    public void setUp() {
         ConfigReader.init();
 
-        String browser = browserParam != null && !browserParam.isBlank()
-                ? browserParam
-                : ConfigReader.get("browser", "chrome");
+        String threadLabel = "Chrome-Thread-" + Thread.currentThread().getId();
+        threadLabelLocal.set(threadLabel);
 
-        WebDriver driver = createDriver(browser.toLowerCase());
+        WebDriver driver = BrowserFactory.createChromeDriver();
         configureDriver(driver);
 
         driverThreadLocal.set(driver);
@@ -45,14 +37,23 @@ public abstract class BaseTest {
     public void tearDown() {
         WebDriver driver = driverThreadLocal.get();
         if (driver != null) {
-            driver.quit();
+            try {
+                driver.quit();
+            } catch (Exception ignored) {
+                // Session may already be closed after a failure
+            }
         }
         driverThreadLocal.remove();
         utilsThreadLocal.remove();
+        threadLabelLocal.remove();
     }
 
     public static WebDriver getThreadLocalDriver() {
         return driverThreadLocal.get();
+    }
+
+    public static String getThreadLabel() {
+        return threadLabelLocal.get();
     }
 
     protected WebDriver getDriver() {
@@ -73,41 +74,15 @@ public abstract class BaseTest {
         getDriver().get(baseUrl + normalizedPath);
     }
 
-    private WebDriver createDriver(String browser) {
-        return switch (browser) {
-            case "firefox" -> new FirefoxDriver(buildFirefoxOptions());
-            case "edge" -> new EdgeDriver(buildEdgeOptions());
-            case "chrome" -> new ChromeDriver(buildChromeOptions());
-            default -> throw new IllegalArgumentException("Unsupported browser: " + browser);
-        };
-    }
-
     private void configureDriver(WebDriver driver) {
         int implicitWait = ConfigReader.getInt("implicit.wait.seconds", 0);
-        int pageLoadTimeout = ConfigReader.getInt("page.load.timeout.seconds", 30);
+        int pageLoadTimeout = ConfigReader.getInt("page.load.timeout.seconds", 60);
 
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(implicitWait));
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(pageLoadTimeout));
-        driver.manage().window().maximize();
-    }
 
-    private ChromeOptions buildChromeOptions() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--disable-notifications");
-        options.addArguments("--remote-allow-origins=*");
-        return options;
-    }
-
-    private FirefoxOptions buildFirefoxOptions() {
-        FirefoxOptions options = new FirefoxOptions();
-        options.addPreference("dom.webnotifications.enabled", false);
-        return options;
-    }
-
-    private EdgeOptions buildEdgeOptions() {
-        EdgeOptions options = new EdgeOptions();
-        options.addArguments("--disable-notifications");
-        options.addArguments("--remote-allow-origins=*");
-        return options;
+        if (!ConfigReader.getBoolean("chrome.headless", false)) {
+            driver.manage().window().maximize();
+        }
     }
 }
