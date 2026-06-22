@@ -553,7 +553,7 @@ public class AddPropertyPage extends BasePage {
     }
 
     public void addAssociatedContact(int contactNumber, String name, String role, String phone, String email) {
-        if (getAssociatedContactCount() < contactNumber) {
+        while (getAssociatedContactCount() < contactNumber) {
             clickAddAssociatedContact();
         }
         WebElement card = waitForAssociatedContactCard(contactNumber);
@@ -595,7 +595,13 @@ public class AddPropertyPage extends BasePage {
     public boolean isAssociatedContactDisplayed(int contactNumber, String nameFragment) {
         try {
             WebElement card = waitForAssociatedContactCard(contactNumber);
-            return card.getText().contains(nameFragment);
+            WebElement nameInput = card.findElement(By.xpath(".//input[@placeholder='Name']"));
+            String value = nameInput.getAttribute("value");
+            if (value != null && value.contains(nameFragment)) {
+                return true;
+            }
+            Object jsValue = utils.executeScript("return arguments[0].value;", nameInput);
+            return jsValue != null && jsValue.toString().contains(nameFragment);
         } catch (Exception e) {
             return false;
         }
@@ -615,14 +621,18 @@ public class AddPropertyPage extends BasePage {
         WebElement emailInput = card.findElement(By.xpath(".//input[@placeholder='Email']"));
 
         scrollIntoView(nameInput);
+        nameInput.click();
         nameInput.clear();
         nameInput.sendKeys(name);
 
+        scrollIntoView(roleSelect);
         new Select(roleSelect).selectByVisibleText(role);
 
+        phoneInput.click();
         phoneInput.clear();
         phoneInput.sendKeys(phone);
 
+        emailInput.click();
         emailInput.clear();
         emailInput.sendKeys(email);
     }

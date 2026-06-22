@@ -84,6 +84,14 @@
                 <suiteXmlFile>src/test/resources/testng-profile-contact-faq-parallel.xml</suiteXmlFile>
             </properties>
         </profile>
+
+        <!-- CI/CD — full suite, 3 parallel Chrome browsers (headless via config.properties) -->
+        <profile>
+            <id>ci</id>
+            <properties>
+                <suiteXmlFile>src/test/resources/testng-ci.xml</suiteXmlFile>
+            </properties>
+        </profile>
     </profiles>
 
     <build>

@@ -2,6 +2,7 @@ package com.cora.base;
 
 import com.cora.config.ConfigReader;
 import com.cora.utils.BrowserFactory;
+import com.cora.utils.VoiceAssistantShield;
 import com.cora.utils.WebElementUtils;
 import org.openqa.selenium.WebDriver;
 import org.testng.annotations.AfterMethod;
@@ -12,6 +13,8 @@ import java.time.Duration;
 /**
  * Base test class — thread-safe Chrome lifecycle for hyper-parallel TestNG execution.
  * Each @Test / DataProvider row gets its own Chrome instance via ThreadLocal.
+ *
+ * Out of scope: voice assistant, microphone, and AI chat features (never tested).
  */
 public abstract class BaseTest {
 
@@ -31,6 +34,7 @@ public abstract class BaseTest {
 
         driverThreadLocal.set(driver);
         utilsThreadLocal.set(new WebElementUtils(driver));
+        VoiceAssistantShield.neutralize(driver);
     }
 
     @AfterMethod(alwaysRun = true)
@@ -81,7 +85,7 @@ public abstract class BaseTest {
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(implicitWait));
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(pageLoadTimeout));
 
-        if (!ConfigReader.getBoolean("chrome.headless", false)) {
+        if (!ConfigReader.getBoolean("chrome.headless", true)) {
             driver.manage().window().maximize();
         }
     }

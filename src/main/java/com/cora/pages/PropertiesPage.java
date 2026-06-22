@@ -117,26 +117,17 @@ public class PropertiesPage extends BasePage {
     }
 
     public void clickEditFromPropertyMenu() {
-        dismissVoiceAssistantFab();
         utils.clickWithJs(MENU_EDIT_BUTTON);
         utils.waitForUrlContains(ConfigReader.get("cora.properties.add.path"));
     }
 
     public void clickDeleteFromPropertyMenu() {
-        dismissVoiceAssistantFab();
         utils.clickWithJs(MENU_DELETE_BUTTON);
         utils.acceptAlertIfPresent();
         utils.clickIfDisplayedWithin(By.xpath(
                 "//div[contains(@class,'fixed') and contains(@class,'inset-0')]"
                         + "//button[normalize-space()='Delete' or normalize-space()='Confirm']"), 3);
         utils.waitForSeconds(2);
-    }
-
-    /** Voice assistant FAB overlaps bottom-right property card menus on some viewports. */
-    private void dismissVoiceAssistantFab() {
-        utils.executeScript(
-                "const fab=document.querySelector('button[aria-label=\"Open voice assistant\"]');"
-                        + "if(fab){fab.style.pointerEvents='none';}");
     }
 
     public void waitForPropertyRemoved(String addressFragment) {

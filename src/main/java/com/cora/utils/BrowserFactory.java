@@ -11,10 +11,12 @@ import java.util.List;
 
 /**
  * Creates isolated Google Chrome instances for parallel TestNG execution.
+ * On macOS uses the local Chrome binary when present; on Linux CI uses system Chrome.
  */
 public final class BrowserFactory {
 
     private static final String MAC_CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+    private static final boolean IS_MAC = System.getProperty("os.name", "").toLowerCase().contains("mac");
 
     private BrowserFactory() {
     }
@@ -32,14 +34,14 @@ public final class BrowserFactory {
         arguments.add("--no-sandbox");
         arguments.add("--disable-dev-shm-usage");
 
-        if (ConfigReader.getBoolean("chrome.headless", false)) {
+        if (ConfigReader.getBoolean("chrome.headless", true)) {
             arguments.add("--headless=new");
             arguments.add("--window-size=1920,1080");
         }
 
         options.addArguments(arguments);
 
-        if (new File(MAC_CHROME).exists()) {
+        if (IS_MAC && new File(MAC_CHROME).exists()) {
             options.setBinary(MAC_CHROME);
         }
 

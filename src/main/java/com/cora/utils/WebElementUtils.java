@@ -54,10 +54,12 @@ public class WebElementUtils {
     }
 
     public void click(By locator) {
+        VoiceAssistantShield.neutralize(driver);
         waitForClickability(locator).click();
     }
 
     public void clickWithJs(By locator) {
+        VoiceAssistantShield.neutralize(driver);
         WebElement element = waitForVisibility(locator);
         jsExecutor.executeScript("arguments[0].click();", element);
     }
@@ -114,6 +116,7 @@ public class WebElementUtils {
 
     public void clickIfDisplayed(By locator) {
         if (isDisplayed(locator)) {
+            VoiceAssistantShield.neutralize(driver);
             click(locator);
         }
     }
@@ -166,6 +169,7 @@ public class WebElementUtils {
 
     public void clickIfDisplayedWithin(By locator, int timeoutSeconds) {
         try {
+            VoiceAssistantShield.neutralize(driver);
             WebDriverWait shortWait = new WebDriverWait(driver, Duration.ofSeconds(timeoutSeconds));
             WebElement element = shortWait.until(ExpectedConditions.visibilityOfElementLocated(locator));
             element.click();

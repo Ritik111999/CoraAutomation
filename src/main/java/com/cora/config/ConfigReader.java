@@ -51,6 +51,10 @@ public final class ConfigReader {
      */
     public static String get(String key) {
         ensureInitialized();
+        String systemValue = System.getProperty(key);
+        if (systemValue != null) {
+            return resolveValue(systemValue);
+        }
         String value = properties.getProperty(key);
         if (value == null) {
             throw new IllegalArgumentException("Property key not found: " + key);
@@ -63,6 +67,10 @@ public final class ConfigReader {
      */
     public static String get(String key, String defaultValue) {
         ensureInitialized();
+        String systemValue = System.getProperty(key);
+        if (systemValue != null) {
+            return resolveValue(systemValue);
+        }
         String value = properties.getProperty(key);
         if (value == null) {
             return defaultValue;
